@@ -10,7 +10,7 @@ int board[4][4];
 int direction_Ligne[] = {1, 0, -1, 0};
 int direction_Colone[] = {0, 1, 0, -1};
 
-pair<int, int> NouvelleVariable(){
+pair<int, int> tireDeuxOuQuatre(){
     int compteur = 1, ligne, colone, deuxouquatre;
     deuxouquatre = rand() % 10; 
     if (deuxouquatre == 0) {
@@ -36,9 +36,9 @@ pair<int, int> NouvelleVariable(){
     return make_pair(ligne, colone);
 } 
 
-void SetColor(int ForgroundColor) { //NIVEAU 1 COULEUR POUR TOUTE LA FONCTION
+void SetColor(int Couleur) { //NIVEAU 1 COULEUR POUR TOUTE LA FONCTION
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, ForgroundColor);
+    SetConsoleTextAttribute(hConsole, Couleur);
 }
 
 void Jeu () {
@@ -47,8 +47,8 @@ void Jeu () {
             board[i][j] = 0;
         }
     }
-    NouvelleVariable();
-    NouvelleVariable();
+    tireDeuxOuQuatre();
+    tireDeuxOuQuatre();
 }
 
 void Score(){
@@ -107,7 +107,7 @@ bool Perdant() {
 }
 
 void ImprimeInterface(){
-    system("cls"); //NIVEAU 1 //rafraishissement de l'ecran
+    system("cls"); //NIVEAU 1 rafraishissement de l'ecran
     SetColor(2); //NIVEAU 1 COULEUR
     cout << "*************************\n";
     for (int i = 0; i < 4; i++){
@@ -206,12 +206,7 @@ void ImprimeInterface(){
     }
     Score();
     SetColor(7); //NIVEAU 1 COULEUR
-    cout << "Votre Bloc le plus élevé est: "; 
-
-    // POUR LE NIVEAU 0 MET LA LIGNE SUIVANTE SANS LE /* ET LE */
-    /* cout << maximum << "\n"; */
-
-    // POUR LE NIVEAU 1 COULEUR MET TOUT LES IF SUIVANTS (la fonction gagnant qui vient juste apres est niveau 0.)
+    cout << "Votre Bloc le plus grand est: "; 
 
     if (maximum == 2) {SetColor(1); cout << maximum << "\n";}
     if (maximum == 4) {SetColor(13); cout << maximum<< "\n";}
@@ -260,7 +255,63 @@ void AppliquerMovement(int direction){
         }
     } while(movePossible);
     if (canAddPiece){
-        NouvelleVariable();
+        tireDeuxOuQuatre();
+    }
+}
+    
+void IA() {
+    int a = 0;
+    while (a != 100){
+        // Evalue les direction possible et le meilleur score
+        int bestScore = -1;
+        int bestDirection = -1;
+
+        // Fait une copie du tableau
+        int tempBoard[4][4];
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                tempBoard[i][j] = board[i][j];
+            }
+        }
+        // Fait une simulation des movement 
+        for (int direction = 0; direction < 4; ++direction) {
+            // Simulate the move
+            AppliquerMovement(direction);
+            
+            // Evalue le meilleur score
+            int score = 0; 
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    score += tempBoard[i][j];
+                }
+            }
+
+            // Bouge en fonction du meilleur tableau, ou si il n'ya pas de movement possible bouge aleatoirement
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    if (board[i][j] == tempBoard[i][j]){
+                        int aleatoire = rand() %4;
+                        AppliquerMovement(aleatoire);
+                    }
+                }
+            }
+
+            // Choisi le meilleur score
+            if (score > bestScore) {
+                bestScore = score;
+                bestDirection = direction;
+            }
+        }
+
+        // appliquer la meilleur direction 
+        if (bestDirection != -1) {
+            AppliquerMovement(bestDirection);
+        }
+        ImprimeInterface();
+        if (Perdant() == false){
+            break;
+        }
+        a = a + 1;
     }
 }
 
@@ -286,12 +337,15 @@ int main(){
     	if(ch==77) AppliquerMovement(commandToDir['d']); //move right  //NIVEAU 1 FLECHES!!!
         if (ch == 110) Jeu(); // New game
         if (ch == 113) break; // End game
+        if (ch == 97) IA(); //AI
     }
     SetColor(15);  //NIVEAU 1 COULEUR
     cout<<"\n\n\t\t\tLE JEU EST FINI!!!\n\n\n";
-	//getch(); //met pas ca
     return 0;
 }
+
+
+
 
 
 
